@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Granular Mileage Tracker</string>
+    <string name="action_settings">Settings</string>
+    <string name="client_list">Client List</string>
+    <string name="Miles">Miles</string>
+    <string name="Client">Client</string>
+    <string name="name">name</string>
+    <string name="delete">delete</string>
+    <string name="item_id_tag">item_id_tag</string>
+    <string name="item_title_tag">item_title_tag</string>
+    <string name="itemWithSubsNotDeletable">Item cannot be deleted because it has sub-items</string>
+    <string name="item_deleted">item deleted</string>
+    <string name="itemUpdated">item updated</string>
+    <string name="name_here">name here</string>
+    <string name="zero">0</string>
+    <string name="notes">Notes</string>
+    <string name="number_format_problem">Please use only 0-9 characters with no spaces</string>
+    <string name="error_start_less_end">Start value must be less than End value</string>
+</resources>
