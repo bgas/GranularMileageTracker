@@ -39,7 +39,7 @@ public class ClientActivity extends MainActivity{
     protected String oldTitle;
     protected String oldMiles;
     protected EditText clientNameDisplay;
-    protected EditText totalMilesDisplay;
+    protected TextView totalMilesDisplay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +47,7 @@ public class ClientActivity extends MainActivity{
         setContentView(R.layout.activity_client);
         //get layout elements
         clientNameDisplay = (EditText) findViewById(R.id.textEditClientNameDisplay);
-        totalMilesDisplay = (EditText) findViewById(R.id.textViewMilesDisplay);
+        totalMilesDisplay = (TextView) findViewById(R.id.textViewMilesDisplay);
         //set instance values for this element
         repoId = intent.getStringExtra(TableClient.ID);
         repoTitleLocation = TableClient.TITLE;  //get reference to
@@ -84,8 +84,8 @@ public class ClientActivity extends MainActivity{
 
         getLoaderManager().initLoader(0, null, this);
 
-        Intent intent = getIntent();
-        itemUri = intent.getParcelableExtra(TableClient.TABLE_NAME );
+//        Intent intent = getIntent();
+        itemUri = getIntent().getParcelableExtra(TableClient.TABLE_NAME );
         Log.d(this.getLocalClassName(), "itemUri: "+ itemUri);
         if (itemUri == null){
             action = Intent.ACTION_INSERT;
@@ -150,52 +150,60 @@ public class ClientActivity extends MainActivity{
     }
 
     private void finishEditing() {
-        String newTitle = clientNameDisplay.getText().toString().trim();
-        String newMiles = totalMilesDisplay.getText().toString().trim();
-        Log.d(this.getLocalClassName()+" fishishEdit", "oldTitle: " + oldTitle + " oldMiles: " + oldMiles);
-        Log.d(this.getLocalClassName()+" fishishEdit", "newTitle: " + newTitle + " newMiles: " + newMiles);
-        if (oldMiles.equals(newMiles) && oldTitle.equals(newTitle)){
+        if (oldTitle.equals(clientNameDisplay.getText().toString().trim()) && !getHasChildren()){
+            //has no children, has no new data finish without action
             finish();
         } else {
-            addUpdateItem(newTitle, newMiles, (itemUri != null));
+            if (itemUri == null) {
+                addItem(getContentValues());
+            } else {
+                updateItem(getContentValues());
+            }
         }
         finish();
     }
-    private void addUpdateItem(String title, String miles, Boolean update) {
+
+    private int updateItem(ContentValues values){
+        Log.d(this.getLocalClassName(), "updating item");
+        int updateId = getContentResolver().update(itemUri, values, whereClause, null);
+        Toast.makeText(this, R.string.itemUpdated, Toast.LENGTH_SHORT).show();
+        setResult(RESULT_OK);
+        return updateId;
+    }
+
+    private Uri addItem(ContentValues values){
+        values.put(TableClient.CREATE, "");
+        Uri addUri = getContentResolver().insert(MyContentProvider.CLIENT_URI, values);
+        Log.d(this.getLocalClassName(), "added Uri: " + addUri);
+        return addUri;
+    }
+    private ContentValues getContentValues(){
         ContentValues values = new ContentValues();
-        values.put(TableClient.TITLE, title);
-        values.put(TableClient.MILES, miles);
+        values.put(TableClient.TITLE, clientNameDisplay.getText().toString().trim());
+        values.put(TableClient.MILES, totalMilesDisplay.getText().toString().trim());
         values.put(TableClient.UPDATE, "");
-        Log.d(this.getLocalClassName(), "values: "+ values.toString());
-        Log.d(this.getLocalClassName(), "add/update itemUri: "+ itemUri + " whereClause: " + whereClause);
-        if (update) {
-            Log.d(this.getLocalClassName(), "updating item");
-            getContentResolver().update(itemUri, values, whereClause, null);
-            Toast.makeText(this, R.string.itemUpdated, Toast.LENGTH_SHORT).show();
-            Intent updateIntent = new Intent();
-            updateIntent.putExtra("newTitle", title);
-            setResult(RESULT_OK, updateIntent);
-        } else {
-            Log.d(this.getLocalClassName(), "adding item");
-            itemUri = MyContentProvider.CLIENT_URI;
-            Uri tempUri = getContentResolver().insert(itemUri, values);
-            Log.d(this.getLocalClassName(), "added Uri: " + tempUri);
-            setResult(RESULT_OK);
-        }
+        return values;
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        //Content values object to push to DB
+
         Log.d(this.getLocalClassName(), "requestCode: " + requestCode + " resultCode: " + resultCode + " RESULT_OK "+ RESULT_OK);
+
         if (requestCode == CHILD_REQUEST_CODE && resultCode == RESULT_OK){
             Log.d(this.getLocalClassName(), "child and result satisfied, restart loader ran");
             restartLoader();
         } else if (requestCode == NEW_REQUEST_CODE && resultCode == RESULT_OK){
-//            Cursor cursor = getContentResolver().query(itemUri, TableClient.COLUMNS, "", null, null);
-//            Cursor cursor = getContentResolver().update(itemUri, TableClient., "", null, null);
-//
-//            cursor.moveToFirst();
+
             Log.d(this.getLocalClassName(), "new and result satisfied, restart loader ran");
+
             Log.d(this.getLocalClassName(), "newURI value: " + data.getParcelableExtra("newUri"));
+            Uri newTripUri = data.getParcelableExtra("newUri");
+            itemUri = addItem(getContentValues());
+            ContentValues values = new ContentValues();
+            values.put(TableTrip.CLIENT_ID, itemUri.getLastPathSegment());
+            int updateTripID = getContentResolver().update(newTripUri, values, null, null);
+            Log.d(this.getLocalClassName(), "update trip id: " +updateTripID);
             restartLoader();
         }
     }

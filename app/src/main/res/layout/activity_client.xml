@@ -47,7 +47,7 @@
         android:textSize="20sp"
         android:text="@string/Miles" />
 
-    <EditText
+    <TextView
         android:id="@+id/textViewMilesDisplay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
