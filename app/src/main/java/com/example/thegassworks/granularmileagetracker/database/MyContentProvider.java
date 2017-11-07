@@ -85,18 +85,10 @@ public class MyContentProvider extends ContentProvider {
             default: throw new SQLException("Failed to query " + uri);
         }
         //Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder
-        String columnStretch = "";
-        for (String column : columns){ columnStretch += column + ", "; }
+//        String columnStretch = "";
+//        for (String column : columns){ columnStretch += column + ", "; }
         return database.query(table, columns, selection, null, null, null, null);
     }
-
-/*
-    @Nullable
-    @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        return database.query(DBOpenHelper.TABLE_TERMS, DBOpenHelper.ALL_COLUMNS, selection, null, null, null, DBOpenHelper.TERM_START_DATE + " DESC" );
-    }
-    */
 
     @Nullable
     @Override
@@ -123,8 +115,6 @@ public class MyContentProvider extends ContentProvider {
         return Uri.parse(table + "/" + id);
     }
 
-
-
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
         String table;
@@ -145,6 +135,7 @@ public class MyContentProvider extends ContentProvider {
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
         String table;
+        Log.d(this.getClass().toString(), "uri: " + uri + " values " + values + " selection " + selection + " selectionArgs: " + selectionArgs);
         switch (sUriMatcher.match(uri)) {
             case CLIENT_ID:
                 table = TableClient.TABLE_NAME;

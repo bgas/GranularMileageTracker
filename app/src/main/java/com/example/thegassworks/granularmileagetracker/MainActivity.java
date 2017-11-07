@@ -1,8 +1,6 @@
 package com.example.thegassworks.granularmileagetracker;
 
 import android.app.LoaderManager;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -11,19 +9,14 @@ import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.example.thegassworks.granularmileagetracker.database.MyContentProvider;
 import com.example.thegassworks.granularmileagetracker.database.TableClient;
@@ -38,8 +31,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     protected String childRepoTableName;
     protected Uri childUri;
     protected Intent childIntent;
+    protected Intent addItemIntent;
     protected Class childClass;
-    protected Class childClassDetails;
+    protected Class thisClass;
     protected ListView list;
 
     @Override
@@ -47,52 +41,64 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         intent = getIntent();
-        String[] from = {TableClient.TITLE, TableClient.MILES, TableClient.ID};
-        int[] to = {R.id.textViewItem, R.id.textViewSubItem};
-        cursorAdapter = new ManagerCursorAdapter(this, R.layout.child_list_item, null, from, to, 0);
-/*
-        MyContentProvider.
-        Cursor tempCursor = cursorAdapter ;
-        tempCursor.moveToFirst();
-        DatabaseUtils.dumpCursor(tempCursor);
-*/
+
         //Set child intent values
         childRepoTitle = TableClient.TITLE;
         childRepoID = TableClient.ID;
         childRepoTableName = TableClient.TABLE_NAME;
         childUri = MyContentProvider.CLIENT_URI;
         childClass = ClientActivity.class;
-        childClassDetails = ClientActivity.class;
         childIntent = new Intent(this, childClass);
+
+        //No values to set
+
+        //Set Cursor Adapter
+        String[] from = {childRepoTitle, TableClient.MILES, childRepoID};
+//        String[] from = {TableClient.TITLE, TableClient.MILES, TableClient.ID};
+        int[] to = {R.id.textViewItem, R.id.textViewSubItem};
+        cursorAdapter = new ManagerCursorAdapter(this, R.layout.child_list_item, null, from, to, 0);
+
+        //Set list
         list = (ListView) findViewById(android.R.id.list);
         list.setAdapter(cursorAdapter);
+
         //Set list-item listener to open item on click
         list.setOnItemClickListener(getChildActionClickListener());
+
         //Set floating action button to create new element on click
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.floatingActionButton);
         fab.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                startActivityForResult(childIntent, NEW_REQUEST_CODE);
+                startActivityForResult(new Intent(childIntent), NEW_REQUEST_CODE);
             }
         });
 
-
         getLoaderManager().initLoader(0, null, this);
     }
-    /* create and respond to child Activities */
+
+    //Set list-item listener to open item on click
     protected AdapterView.OnItemClickListener getChildActionClickListener(){
         AdapterView.OnItemClickListener listener = new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int Position, long id){
+                Intent childDetailsIntent = new Intent(childIntent);
                 Uri childIDUri = Uri.parse(childUri + "/" + id);
-                childIntent.putExtra(childRepoTableName, childIDUri);
-                childIntent.putExtra(childRepoID, (String) view.getTag(R.string.item_id_tag));
-                childIntent.putExtra(childRepoTitle, (String) view.getTag(R.string.item_title_tag));
-                startActivityForResult(childIntent, CHILD_REQUEST_CODE);
+                childDetailsIntent.putExtra(childRepoTableName, childIDUri);
+                childDetailsIntent.putExtra(childRepoID, (String) view.getTag(R.string.item_id_tag));
+                childDetailsIntent.putExtra(childRepoTitle, (String) view.getTag(R.string.item_title_tag));
+                startActivityForResult(childDetailsIntent, CHILD_REQUEST_CODE);
             }
         };
         return listener;
     }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        Log.d(this.getLocalClassName(), "requestCode: " + requestCode + " resultCode: " + resultCode + "resultCode == RESULT_OK: "+ (resultCode == RESULT_OK));
+        if (resultCode == RESULT_OK){
+            restartLoader();
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -103,40 +109,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+//        int id = item.getItemId();
 //        switch (id) {        }
         return super.onOptionsItemSelected(item);
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-        Log.d(this.getLocalClassName(), "requestCode: " + requestCode + " resultCode: " + resultCode );
-        if (requestCode == CHILD_REQUEST_CODE && resultCode == RESULT_OK){
-            restartLoader();
-        }
-    }
-
     private void restartLoader() {
+        Log.d(this.getLocalClassName(), "loader restart");
         getLoaderManager().restartLoader(0, null, this);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.d(this.getLocalClassName(), "id: " + id + "bundle: " + args );
         return new CursorLoader(this, MyContentProvider.CLIENT_URI, null, null, null, null);
     }
-//    @Override
-//    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-//        String loaderId = intent.getStringExtra(TermRepo.ID);
-//        Uri loaderChildUri = MyContentProvider.COURSE_URI;
-//        String loaderChildsParentId = CourseRepo.TERM_ID;
-//        return new CursorLoader(this, loaderChildUri, null, loaderChildsParentId + "=" + loaderId, null, null);
-//    }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(this.getLocalClassName(), "onLoadFinished");
         cursorAdapter.swapCursor(data);
     }
 
@@ -144,12 +136,4 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onLoaderReset(Loader<Cursor> loader) {
         cursorAdapter.swapCursor(null);
     }
-
-//    public void openEditorForNewItem(View view) {
-//        Log.d(this.getLocalClassName(), "openEditor request code: "+NEW_REQUEST_CODE);
-//        Intent intent = new Intent(this, childClassDetails);
-//        intent.putExtra(childRepoTableName, childUri);
-//        startActivityForResult(intent, NEW_REQUEST_CODE);
-//    }
-
 }

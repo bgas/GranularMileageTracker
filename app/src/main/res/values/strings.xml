@@ -16,4 +16,7 @@
     <string name="notes">Notes</string>
     <string name="number_format_problem">Please use only 0-9 characters with no spaces</string>
     <string name="error_start_less_end">Start value must be less than End value</string>
+    <string name="record_not_found">Record not found</string>
+    <string name="trip_miles_not_found">trip miles not found</string>
+    <string name="trip_record_not_found">trip record not found</string>
 </resources>

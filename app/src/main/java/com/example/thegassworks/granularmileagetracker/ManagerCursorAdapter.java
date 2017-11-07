@@ -3,6 +3,7 @@ package com.example.thegassworks.granularmileagetracker;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,8 @@ import android.widget.CursorAdapter;
 import android.widget.TextView;
 
 import org.w3c.dom.Text;
+
+import java.util.Arrays;
 
 /**
  * Created by khaln on 5/25/17.
@@ -27,6 +30,7 @@ public class ManagerCursorAdapter extends CursorAdapter {
         this.to = to;
         this.from = from;
         this.layout = layout;
+        Log.d(this.getClass().toString(), "new managercursoradapter context: " + context + " layout: " + layout + " cursor: " + c + " from: " + Arrays.toString(from) + " to: " + Arrays.toString(to) + " flags: " +flags);
     }
 
     public ManagerCursorAdapter(Context context, Cursor c, int flags) {
@@ -45,12 +49,21 @@ public class ManagerCursorAdapter extends CursorAdapter {
         String itemSubText = cursor.getString(cursor.getColumnIndex(from[1]));
         String itemId = "" + cursor.getInt(cursor.getColumnIndex(from[2]));
 
-        //if itemText contains newline character insert ...
-        final String titleText = (-1 != itemText.indexOf(10)) ? itemText.substring(0,itemText.indexOf(10))+ "..." : itemText;
+        //if itemText contains newline character (10) insert and has length then add ...
+        Log.d(this.getClass().toString(), "itemText: "+ itemText + " itemSubText: " + itemSubText + " itemId: " + itemId);
+        Log.d(this.getClass().toString(), "from values: " + Arrays.toString(from));
+
+        final String titleText;
+        if (itemText != null){
+            titleText = ((-1 != itemText.indexOf(10)) && itemText.length() > 0) ? itemText.substring(0,itemText.indexOf(10)) + "..." : itemText;
+        } else {
+            titleText = "";
+        }
 
         //pin values to view item to be passed as extra
         view.setTag(R.string.item_id_tag, itemId);
         view.setTag(R.string.item_title_tag, titleText);
+
         /*
         if (from.length > 2){
             view.setBackgroundColor(Color.WHITE);
