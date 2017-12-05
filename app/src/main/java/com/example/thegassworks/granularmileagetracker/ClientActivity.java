@@ -30,6 +30,8 @@ import com.example.thegassworks.granularmileagetracker.database.TableTrip;
  * Created by benjamin on 8/30/17.
  */
 
+//TODO this is updating properly, remove this after next commit
+
 public class ClientActivity extends MainActivity {
     private String action;
     private static final int CHILD_REQUEST_CODE = 1001;
